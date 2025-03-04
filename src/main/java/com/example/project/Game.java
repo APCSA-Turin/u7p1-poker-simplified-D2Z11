@@ -35,7 +35,7 @@ public class Game {
                 break;
         }
 
-        return "Error";
+        return p1Hand;
     }
 
     public static void play() { // simulate card playing
