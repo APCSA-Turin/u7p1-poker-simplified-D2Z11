@@ -10,32 +10,21 @@ public class Game {
         // Card).
         // Tiebreakers (e.g., comparing the highest card in case of two players having
         // the same hand rank) should be accounted for.
-
-        // Check each scenario
-        switch (p1Hand) {
-            case "Royal Flush":
-                break;
-            case "Straight Flush":
-                break;
-            case "Four of a Kind":
-                break;
-            case "Full House":
-                break;
-            case "Flush":
-                break;
-            case "Straight":
-                break;
-            case "Three of a Kind":
-                break;
-            case "Two Pair":
-                break;
-            case "Pair":
-                break;
-            case "High Card":
-                break;
+                
+        int one = Utility.getHandRanking(p1Hand);
+        int two = Utility.getHandRanking(p2Hand);
+        if (one > two) {
+            return "Player 1 wins!";
+        } else if (one < two) {
+            return "Player 2 wins!";
+        } else {
+            if (p1.getHighestCardValue(p1.getHand()) > p2.getHighestCardValue(p2.getHand())) {
+                return "Player 1 wins!";
+            } else if (p1.getHighestCardValue(p1.getHand()) < p2.getHighestCardValue(p2.getHand())) {
+                return "Player 2 wins!";
+            }
+            return "Tie!";
         }
-
-        return p1Hand;
     }
 
     public static void play() { // simulate card playing

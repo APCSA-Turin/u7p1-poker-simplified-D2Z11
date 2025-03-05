@@ -8,13 +8,6 @@ public class Player {
     private ArrayList<Card> allCards; // the current community cards + hand
     String[] suits = Utility.getSuits();
     String[] ranks = Utility.getRanks();
-    // private String[] royalFlushValues = { "10", "J", "Q", "K", "A" };
-
-    // private enum Hands {
-    //     RoyalFlush,
-    //     StraightFlush,
-    //     FourofaKind
-    // };
 
     public Player() {
         allCards = new ArrayList<>();
@@ -30,124 +23,188 @@ public class Player {
     }
 
     public void addCard(Card c) {
+        hand.add(c);
         allCards.add(c);
     }
 
     public String playHand(ArrayList<Card> communityCards) {
-        // Current hand that is being checked
-        // Hands hand = Hands.RoyalFlush;
-        // Variable to allow the loop to check each card for if its the same as the
-        // first suit
-        int firstSuit = Utility.getSuitValue(communityCards.get(0).getSuit());
-        // Variable to keep track of consecutive suits
-        int consecutiveSuits = 1;
-        // Amount of same suits
-        int sameSuits = 0;
-        // Amount of same ranks
-        int sameRanks = 0;
-        // Amount of times the cards match with royal flush
-        int firstRank = Utility.getRankValue(communityCards.get(0).getRank());
-        int firstRankCopy = Utility.getRankValue(communityCards.get(0).getRank());
-        // Keep track of if ranks are consecutive
-        boolean isConsecutiveRanks = true;
+        if (allCards.size() < 5) {
+            allCards.addAll(communityCards);
+        }
+        // In simplified poker, two players are dealt two private cards each, and there
+        // are three community cards that all players can use.
+        // The goal is to create the best possible 5-card hand using any combination of
+        // the **two cards in hand and the three community cards.**
+        int[] rFreq = findRankingFrequency();
+        // int[] sFreq = findSuitFrequency();
 
-        // ArrayList<Integer> rankingFrequencies = findRankingFrequency();
-        // ArrayList<Integer> suitFrequencies = findSuitFrequency();
-
-        int lastIndex = communityCards.size() - 1;
-        ArrayList<Integer> oneRanks = new ArrayList<>();
-        for (int i = 0; i < communityCards.size(); i++) {
-            // Compare current card with royal flush sequence
-            System.out.println(firstRankCopy + " -> " + (Utility.getRankValue(communityCards.get(i).getRank())));
-            if (isConsecutiveRanks && firstRankCopy == (Utility.getRankValue(communityCards.get(i).getRank()))) {
-                firstRankCopy++;
+        // Check 10 to A values and whether there is enough for a royal flush
+        for (int i = 8; i < 13; i++) {
+            // If the ranking frequency is zero then you can just exit
+            if (rFreq[i] == 0) {
+                break;
+            }
+            // If it's the end of the loop we can check more conditions
+            if (i == 12) {
+                String first = allCards.get(0).getSuit();
+                for (int z = 1; z < allCards.size(); z++) {
+                    if (!allCards.get(z).getSuit().equals(first)) {
+                        break;
+                    }
+                    if (z == allCards.size() - 1) {
+                        return "Royal Flush";
+                    }
+                }
+            }
+        }
+        int h = 1;
+        // Loop through array and find out if there is a 5 consecutive
+        for (int i = 0; i < rFreq.length; i++) {
+            if (rFreq[i] >= 1) {
+                h++;
+                if (h >= 5) {
+                    String first = allCards.get(0).getSuit();
+                    for (int z = 1; z < allCards.size(); z++) {
+                        if (!allCards.get(z).getSuit().equals(first)) {
+                            break;
+                        }
+                        if (z == allCards.size() - 1) {
+                            return "Straight Flush";
+                        }
+                    }
+                }
             } else {
-                isConsecutiveRanks = false;
+                h = 0;
             }
-            if (firstSuit == (Utility.getSuitValue(communityCards.get(i).getSuit()))) {
-                sameSuits++;
+        }
+        // Find 4 cards of same rank
+        for (int i = 0; i < rFreq.length; i++) {
+            if (rFreq[i] == 4) {
+                return "Four of a Kind";
             }
-            if (firstRank == (Utility.getRankValue(communityCards.get(i).getRank()))) {
-                sameRanks++;
+        }
+        boolean three = false;
+        boolean two = false;
+        // Find three cards of one rank and two cards of another rank.
+        for (int i = 0; i < rFreq.length; i++) {
+            // System.out.println(rFreq[i]);
+            if (rFreq[i] == 3) {
+                if (three) {
+                    two = true;
+                }
+                three = true;
             }
-
-            // Check if current suit is same as first to count consecutiveSuits
-            // boolean matchesWithFirstSuit = communityCards.get(i).getSuit().equals(firstSuit);
-            // boolean matchesWithFirstRank = communityCards.get(i).getSuit().equals(firstRank);
-            // if (matchesWithFirstSuit) {
-            //     sameSuits++;
-            // }
-            // if (matchesWithFirstRank) {
-            //     sameRanks++;
-            // } else {
-            //     oneRanks.add(sameRanks);
-            //     sameRanks = 0;
-            // }
+            if (rFreq[i] == 2) {
+                two = true;
+            }
         }
-        System.out.println(sameRanks + " " + communityCards.size());
-        System.out.println(consecutiveSuits + " " + isConsecutiveRanks);
-        if (isConsecutiveRanks && consecutiveSuits == communityCards.size()) {
-            return "Royal Flush";
+        if (three && two) {
+            return "Full House";
         }
-        if (isConsecutiveRanks && sameSuits == communityCards.size()) {
-            return "Straight Flush";
+        String first = allCards.get(0).getSuit();
+        for (int z = 1; z < allCards.size(); z++) {
+            if (!allCards.get(z).getSuit().equals(first)) {
+                break;
+            }
+            if (z == allCards.size() - 1) {
+                return "Flush";
+            }
         }
-        if (sameRanks == 4) {
-            return "Four of a Kind";
+        h = 1;
+        // Loop through array and find out if there is a 5 consecutive
+        for (int i = 0; i < rFreq.length; i++) {
+            System.out.println(rFreq[i]);
+            if (rFreq[i] >= 1) {
+                h++;
+                if (h >= 5) {
+                    System.out.println("wtf");
+                    return "Straight";
+                }
+            } else {
+                h = 0;
+            }
         }
-        // Ignore full house...
-        if (sameSuits == 5) {
-            return "Flush";
+        for (int i = 0; i < rFreq.length; i++) {
+            if (rFreq[i] == 3) {
+                return "Three of a Kind";
+            }
         }
-        if (isConsecutiveRanks) {
-            return "Straight";
+        int count = 0;
+        for (int i = 0; i < rFreq.length; i++) {
+            if (rFreq[i] == 2) {
+                count++;
+            }
+            if (count >= 2) {
+                return "Two Pair";
+            }
         }
-        // Ignore Three of a Kind
-        // Ignore two pair and one pair
+        for (int i = 0; i < rFreq.length; i++) {
+            // System.out.println(rFreq[i]);
+            if (rFreq[i] == 2) {
+                return "A Pair";
+            }
+        }
+        int max = getHighestCardValue(hand);
+        int max2 = getHighestCardValue(communityCards);
+        if (max > max2) {
+            return "High Card";
+        }
         return "Nothing";
+    }
+
+    public int getHighestCardValue(ArrayList<Card> cards) {
+        int max = 0;
+        for (int i = 0; i < cards.size(); i++) {
+            if (Utility.getRankValue(cards.get(i).getRank()) > max) {
+                max = Utility.getRankValue(cards.get(i).getRank());
+            }
+        }
+        return max;
     }
 
     public void sortAllCards() {
     }
 
-    public ArrayList<Integer> findRankingFrequency() {
-        ArrayList<Integer> frequencies = new ArrayList<>();
+    public int[] findRankingFrequency() {
+        int[] frequencies = new int[13];
         // Based on the ranking value switch statement in Utility.java: ["2", "3", "4",
         // "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"]
-        // Loop through the hand
-        for (int i = 0; i < hand.size(); i++) {
+        // Loop through all the cards
+        for (int i = 0; i < allCards.size(); i++) {
+            // System.out.println(allCards.get(i));
             // Get the ranking of the current card as a String and then get the value as a
             // number/index
-            int index = Utility.getRankValue(hand.get(i).getRank());
+            int index = Utility.getRankValue(allCards.get(i).getRank());
+            // System.out.println(index);
             // Ensure that the index in frequencie is not null to prevent errors
-            if (frequencies.get(index) != null) {
-                // Increment frequency
-                frequencies.set(index, frequencies.get(index) + 1);
-            } else {
-                // Set to zero if it was previously null
-                frequencies.set(index, 0);
-            }
+            // if (frequencies[index] != null) {
+            // Increment frequency
+            frequencies[index] = frequencies[index] + 1;
+            // } else {
+            // // Set to zero if it was previously null
+            // frequencies[index] = 0;
+            // }
         }
         return frequencies;
     }
 
-    public ArrayList<Integer> findSuitFrequency() {
-        ArrayList<Integer> frequencies = new ArrayList<>();
-        // Based on the ranking value switch statement in Utility.java: ["♠","♥","♣",
-        // "♦”]
-        // Loop through the hand
-        for (int i = 0; i < hand.size(); i++) {
-            // Get the suit of the current card as a String and then get the value as a
+    public int[] findSuitFrequency() {
+        int[] frequencies = new int[4];
+        // Based on the ranking value switch statement in Utility.java: ["2", "3", "4",
+        // "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"]
+        // Loop through all the cards
+        for (int i = 0; i < allCards.size(); i++) {
+            // Get the ranking of the current card as a String and then get the value as a
             // number/index
-            int index = Utility.getSuitValue(hand.get(i).getSuit());
+            int index = Utility.getSuitValue(allCards.get(i).getSuit());
             // Ensure that the index in frequencie is not null to prevent errors
-            if (frequencies.get(index) != null) {
-                // Increment frequency
-                frequencies.set(index, frequencies.get(index) + 1);
-            } else {
-                // Set to zero if it was previously null
-                frequencies.set(index, 0);
-            }
+            // if (frequencies[index] != null) {
+            // Increment frequency
+            frequencies[index] = frequencies[index] + 1;
+            // } else {
+            // // Set to zero if it was previously null
+            // frequencies[index] = 0;
+            // }
         }
         return frequencies;
     }
