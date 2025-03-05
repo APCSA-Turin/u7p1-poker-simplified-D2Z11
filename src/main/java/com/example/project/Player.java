@@ -174,7 +174,6 @@ public class Player {
         return "Nothing";
     }
 
-<<<<<<< HEAD
     public int getHighestCardValue(ArrayList<Card> cards) {
         int max = 0;
         for (int i = 0; i < cards.size(); i++) {
@@ -184,12 +183,6 @@ public class Player {
             }
         }
         return max;
-=======
-    public void sortAllCards(){} 
-
-    public ArrayList<Integer> findRankingFrequency(){
-        return new ArrayList<>(); 
->>>>>>> 337462a8e132f4d59960940814dc0e72e0b4a52f
     }
 
     public void sortAllCards() {
